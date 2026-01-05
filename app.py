@@ -22,12 +22,12 @@ try:
     ]
     creds = Credentials.from_service_account_info(st.secrets["google"], scopes=scopes)
     client = gspread.authorize(creds)
-    SPREADSHEET_NAME = "Diwan_Legs"
+    SPREADSHEET_NAME = "Leg_Meta_v2"
     st.info("جاري الاتصال بـ Google Sheets...")
     spreadsheet = client.open(SPREADSHEET_NAME)
     st.success("✔️ تم الاتصال بنجاح بـ Google Sheets!")
 except gspread.exceptions.SpreadsheetNotFound:
-    st.error("❌ الملف 'Diwan_Legs' مش موجود. تأكد من الاسم أو أنشئه يدويًا.")
+    st.error("❌ الملف 'Leg_Meta_v2' مش موجود. تأكد من الاسم أو أنشئه يدويًا.")
     st.stop()
 except Exception as e:
     st.error("❌ خطأ في الاتصال بـ Google Sheets")
@@ -536,4 +536,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
