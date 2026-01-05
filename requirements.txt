@@ -1,0 +1,6 @@
+streamlit
+pandas
+openpyxl
+gspread==5.12.1
+oauth2client
+google-auth
