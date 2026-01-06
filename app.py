@@ -373,24 +373,25 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
         fields_to_show = [k for k in ordered_keys if k in reference_data]
         extra_fields = [k for k in reference_data.keys() if k not in ordered_keys]
         fields_to_show += extra_fields
-
+        
         for i, field_key in enumerate(fields_to_show):
             with cols_list[i % 3]:
                 arabic_label = FIELD_LABELS.get(field_key, field_key)
                 original_val = reference_data.get(field_key, "")
                 val_str = str(original_val) if original_val else ""
                 
-                user_input = st.text_input(arabic_label, value=val_str)  # بدون key ديناميكي
+                # Add unique key here to fix the issue
+                user_input = st.text_input(arabic_label, value=val_str, key=f"custom_input_{field_key}")
                 
                 if user_input.strip() != "":
                     custom_data[field_key] = user_input.strip()
                 elif user_input == "" and original_val:
                     custom_data[field_key] = ""
-
+        
         # دمج الحقول غير المعدلة
         final_data = reference_data.copy()
         final_data.update(custom_data)
-
+        
         c1, c2 = st.columns(2)
         with c1:
             if st.form_submit_button("حفظ والتالي", use_container_width=True):
@@ -523,3 +524,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
