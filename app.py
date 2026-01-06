@@ -392,37 +392,47 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
         custom_data = {}
         cols_list = st.columns(3)
         
+        # ترتيب الحقول: الأهم أولاً
         ordered_keys = ["leg_name", "leg_number", "year", "magazine_number", "magazine_page",
                         "magazine_date", "start_date", "replaced_for", "status", "cancelled_by", "end_date"]
         
+        # الحقول الموجودة
         fields_to_show = [k for k in ordered_keys if k in reference_data]
         extra_fields = [k for k in reference_data.keys() if k not in ordered_keys]
         fields_to_show += extra_fields
 
+        # عرض الحقول في 3 أعمدة
         for i, field_key in enumerate(fields_to_show):
             with cols_list[i % 3]:
                 arabic_label = FIELD_LABELS.get(field_key, field_key)
-                original_val = reference_data.get(field_key, "")
-                val_str = str(original_val) if original_val else ""
+                val = reference_data.get(field_key, "")
+                value_str = str(val) if val else ""
                 
-                # حذفنا الـ key تمامًا ← هنا الحل!
-                user_input = st.text_input(arabic_label, value=val_str)
+                # ← هنا الحل: ضفنا الـ key!
+                user_input = st.text_input(
+                    arabic_label, 
+                    value=value_str, 
+                    key=f"custom_field_{field_key}_{current_index}"
+                )
                 
-                if user_input.strip() != "":  
-                    custom_data[field_key] = user_input.strip()
-                elif user_input == "" and original_val:  
+                # حفظ التعديلات
+                if user_input != "":
+                    custom_data[field_key] = user_input
+                elif val:
                     custom_data[field_key] = ""
-                # لو تركه كما هو → ما بنضيفه
-
+        
+        # ← هنا التأكد: دمج أي حقول مفقودة
+        for k, v in reference_data.items():
+            if k not in custom_data:
+                custom_data[k] = v if v else ""
+        
+        # أزرار الحفظ والإلغاء
         c1, c2 = st.columns(2)
         with c1:
             if st.form_submit_button("حفظ والتالي", use_container_width=True):
-                final_data = reference_data.copy()
-                final_data.update(custom_data)
-                
-                save_comparison_record(final_data, 'تصحيح يدوي')
-                celebrate_save()
+                save_comparison_record(custom_data, 'تصحيح يدوي')
                 st.session_state.show_custom_form = False
+                celebrate_save()
                 move_to_next_record(total_records, current_index)
         with c2:
             if st.form_submit_button("إلغاء", use_container_width=True):
@@ -545,4 +555,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
