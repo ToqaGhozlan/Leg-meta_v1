@@ -345,18 +345,19 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
 def render_selection_buttons(qistas_data: dict, current_index: int, total_records: int):
     st.markdown("---")
     st.markdown("<h3 style='color: white; text-align: center;'>احفظ البيانات الصحيحة</h3>", unsafe_allow_html=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("✅ حفظ كما هو (قسطاس)", use_container_width=True, key=f"save_as_is_{current_index}"):
-            save_comparison_record(qistas_data, 'قسطاس')
-            celebrate_save()
-            move_to_next_record(total_records, current_index)
-    with col2:
-        if st.button("✍️ تصحيح يدوي", use_container_width=True, key=f"manual_{current_index}"):
-            st.session_state.show_custom_form = True
-            st.rerun()
-
-    if st.session_state.get("show_custom_form", False):
+    
+    if not st.session_state.get("show_custom_form", False):
+        col1, col2 = st.columns(2)
+        with col1:
+            if st.button("✅ حفظ كما هو (قسطاس)", use_container_width=True, key=f"save_as_is_{current_index}"):
+                save_comparison_record(qistas_data, 'قسطاس')
+                celebrate_save()
+                move_to_next_record(total_records, current_index)
+        with col2:
+            if st.button("✍️ تصحيح يدوي", use_container_width=True, key=f"manual_{current_index}"):
+                st.session_state.show_custom_form = True
+                st.rerun()
+    else:
         render_custom_form(qistas_data, current_index, total_records)
 
 def render_custom_form(reference_data: dict, current_index: int, total_records: int):
@@ -524,4 +525,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
