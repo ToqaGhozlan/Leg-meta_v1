@@ -344,11 +344,8 @@ def celebrate_completion():
         </div>
     """, unsafe_allow_html=True)
 
-# ==================== عرض السجل والأزرار والنموذج (التعديل النهائي المضمون) ====================
 def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_records: int):
     qistas_data = {k: ('' if pd.isna(v) else v) for k, v in qistas_df.iloc[current_index].to_dict().items()}
-    
-    # عرض جدول بيانات قسطاس
     st.markdown("<h3 style='color: #667eea !important; text-align: center;'>بيانات قسطاس</h3>", unsafe_allow_html=True)
     DISPLAY_FIELDS = [
         ("اسم التشريع", "leg_name"), ("رقم التشريع", "leg_number"), ("السنة", "year"),
@@ -367,8 +364,9 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
         html.append(f"<tr><td>{label}</td><td>{val}</td></tr>")
     html.append("</tbody></table></div>")
     st.markdown("\n".join(html), unsafe_allow_html=True)
+    render_selection_buttons(qistas_data, current_index, total_records)
 
-    # أزرار الاختيار
+def render_selection_buttons(qistas_data: dict, current_index: int, total_records: int):
     st.markdown("---")
     st.markdown("<h3 style='color: white; text-align: center;'>احفظ البيانات الصحيحة</h3>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
@@ -380,53 +378,58 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
     with col2:
         if st.button("✍️ تصحيح يدوي", use_container_width=True, key=f"manual_{current_index}"):
             st.session_state.show_custom_form = True
-            st.session_state.current_edit_data = qistas_data.copy()
             st.rerun()
 
-    # النموذج اليدوي: خارج كل الشروط الداخلية، يعتمد فقط على session_state (زي الكود الثاني تماماً)
     if st.session_state.get("show_custom_form", False):
-        st.markdown("---")
-        st.markdown("<h3 style='color: white; text-align: center;'>تصحيح يدوي</h3>", unsafe_allow_html=True)
+        render_custom_form(qistas_data, current_index, total_records)
+
+# ==================== التعديل الجديد هنا: نموذج التصحيح اليدوي (زي الكود الثاني) ====================
+def render_custom_form(reference_data: dict, current_index: int, total_records: int):
+    st.markdown("---")
+    st.markdown("<h3 style='color: white; text-align: center;'>تصحيح يدوي</h3>", unsafe_allow_html=True)
+    
+    with st.form("custom_form", clear_on_submit=False):
+        custom_data = {}
+        cols_list = st.columns(3)
         
-        reference_data = st.session_state.get("current_edit_data", qistas_data)
+        ordered_keys = ["leg_name", "leg_number", "year", "magazine_number", "magazine_page",
+                        "magazine_date", "start_date", "replaced_for", "status", "cancelled_by", "end_date"]
         
-        with st.form("custom_form", clear_on_submit=False):
-            custom_data = {}
-            cols_list = st.columns(3)
-            
-            ordered_keys = ["leg_name", "leg_number", "year", "magazine_number", "magazine_page",
-                            "magazine_date", "start_date", "replaced_for", "status", "cancelled_by", "end_date"]
-            
-            fields = [k for k in ordered_keys if k in reference_data] + [k for k in reference_data if k not in ordered_keys]
-            
-            for i, key in enumerate(fields):
-                with cols_list[i % 3]:
-                    label = FIELD_LABELS.get(key, key)
-                    val = reference_data.get(key, "")
-                    value_str = str(val) if val else ""
-                    # key فريد عشان ما يتعارضش
-                    custom_data[key] = st.text_input(label, value=value_str, key=f"custom_input_{key}_{current_index}")
-            
-            c1, c2 = st.columns(2)
-            with c1:
-                if st.form_submit_button("حفظ والتالي", use_container_width=True):
-                    cleaned = {k: (v.strip() if v else "") for k, v in custom_data.items()}
-                    # ملء الحقول الناقصة
-                    for k in reference_data:
-                        if k not in cleaned:
-                            cleaned[k] = str(reference_data.get(k, ""))
-                    save_comparison_record(cleaned, 'تصحيح يدوي')
-                    celebrate_save()
-                    st.session_state.show_custom_form = False
-                    if "current_edit_data" in st.session_state:
-                        del st.session_state.current_edit_data
-                    move_to_next_record(total_records, current_index)
-            with c2:
-                if st.form_submit_button("إلغاء", use_container_width=True):
-                    st.session_state.show_custom_form = False
-                    if "current_edit_data" in st.session_state:
-                        del st.session_state.current_edit_data
-                    st.rerun()
+        # ترتيب الحقول: الأساسية أولاً، ثم أي حقول إضافية
+        fields_to_show = [k for k in ordered_keys if k in reference_data]
+        extra_fields = [k for k in reference_data.keys() if k not in ordered_keys]
+        fields_to_show += extra_fields
+
+        for i, field_key in enumerate(fields_to_show):
+            with cols_list[i % 3]:
+                arabic_label = FIELD_LABELS.get(field_key, field_key)
+                original_val = reference_data.get(field_key, "")
+                val_str = str(original_val) if original_val else ""
+                
+                user_input = st.text_input(arabic_label, value=val_str, key=f"input_{field_key}_{current_index}")
+                
+                # المنطق الجديد: فقط إذا تم إدخال شيء أو مسح عمدًا
+                if user_input.strip() != "":  # كتب شيء
+                    custom_data[field_key] = user_input.strip()
+                elif user_input == "" and original_val:  # مسح الحقل عمدًا
+                    custom_data[field_key] = ""
+                # إذا تركه كما هو → ما بنضيفه للـ custom_data
+
+        c1, c2 = st.columns(2)
+        with c1:
+            if st.form_submit_button("حفظ والتالي", use_container_width=True):
+                # نملأ الحقول اللي ما تم تعديلها من القيم الأصلية
+                final_data = reference_data.copy()
+                final_data.update(custom_data)  # التعديلات تكتب فوق الأصلي
+                
+                save_comparison_record(final_data, 'تصحيح يدوي')
+                celebrate_save()
+                st.session_state.show_custom_form = False
+                move_to_next_record(total_records, current_index)
+        with c2:
+            if st.form_submit_button("إلغاء", use_container_width=True):
+                st.session_state.show_custom_form = False
+                st.rerun()
 
 def save_comparison_record(data: dict, source: str) -> None:
     comp_key = SessionManager.get_unique_key("comparison_data")
@@ -446,8 +449,6 @@ def move_to_next_record(total_records: int, current_index: int) -> None:
         st.session_state[idx_key] += 1
         st.session_state[max_key] = max(st.session_state.get(max_key, 0), current_index + 1)
         st.session_state.show_custom_form = False
-        if "current_edit_data" in st.session_state:
-            del st.session_state.current_edit_data
         save_progress(st.session_state[idx_key], st.session_state[max_key])
         save_persistent_data()
         st.rerun()
@@ -465,8 +466,6 @@ def render_navigation_buttons(current_index: int, total_records: int):
         if current_index > 0 and st.button("⏮️ السابق", use_container_width=True):
             st.session_state[idx_key] -= 1
             st.session_state.show_custom_form = False
-            if "current_edit_data" in st.session_state:
-                del st.session_state.current_edit_data
             save_progress(st.session_state[idx_key], st.session_state[max_key])
             st.rerun()
     with col3:
