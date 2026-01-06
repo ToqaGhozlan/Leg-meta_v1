@@ -43,8 +43,8 @@ PROGRESS_FILE = PROGRESS_FILES[option]
 @st.cache_data
 def load_qis_data(kind: str):
     PATHS = {
-        'نظام': r'Qistas\V02_All_Legs\V10_Bylaws.xlsx',
-        'قانون': r'Qistas\V02_All_Legs\V05_Laws.xlsx',
+        'نظام': r'V02_All_Legs\V10_Bylaws.xlsx',
+        'قانون': r'V02_All_Legs\V05_Laws.xlsx',
     }
     if kind not in PATHS:
         st.error(f"النوع '{kind}' غير مدعوم حاليًا.")
@@ -448,3 +448,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
