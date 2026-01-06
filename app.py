@@ -277,19 +277,40 @@ FIELD_LABELS = {
     "cancelled_by": "ألغي بواسطة", "end_date": "تاريخ الانتهاء",
 }
 
-# ==================== رسائل تحفيزية ====================
+# ==================== رسائل تحفيزية أردنية أصيلة ====================
 SAVE_MESSAGES = [
     "عييييش! كفو عليك يا أسد 🦁",
     "الله يعطيك العافية يا غالي! شغل نظيف 👏",
     "يا زلمة إبداع! استمر هيك 💪",
     "هيييه! تمام يا بطل الأردن 🇯🇴",
     "والله فخورين فيك! يلا عالتالي 🚀",
-    # ... باقي الرسائل زي ما هي
+    "كفو والله! دير بالك أنت صاروخ ⚡",
+    "يا سلام عليك! كل حفظ وأنت طيب 🌟",
+    "مبروك الحفظ! أنت الأفضل 😎",
+    "عفيه عليك يا نشمي! خلصتها زي المنسف بالجميد 🔥",
+    "هيييه يا معلم! لو التشريعات بتفهم كانت صفقلك 👏👏",
+    "الله يعطيك العافية يا أسد الديوان! استمر ولا توقف 🦁",
+    "كفو يا كبير! أنت أسرع من النت في الكافيهات الأردنية ⚡",
+    "يا سلام! حفظتها وكأنك بتاكل كنافة نابلسية ساخنة 😋",
+    "والله إنك فنان يا زلمة! يلا عالتشريع الجاي، أنت قادر 💪",
+    "هسا خلصت؟ عيييش! أنت أقوى من القهوة السادة الصبح 🇯🇴☕",
+    "مبروك يا بطل! شغلك نظيف زي المناظر في البترا 🌟",
+    "دير بالك أنت صاروخ! لو كان في ميدالية مراجعة كنت أخذت الذهب 🥇",
+    "يا عيني عليك! كل حفظ وأنت بتجنن زي الزار في جرش 🎶",
+    "كفووو والله! خلصتها وكأنك طاير فوق وادي رم 🚀",
 ]
 
 FINAL_MESSAGES = [
     "🎉 يا سلام عليك! خلّصت {option} كلها، والله إنك قوي!",
-    # ... باقي الرسائل
+    "👏 الله يعطيك العافية يا غالي! مراجعة نظيفة 100%!",
+    "💪 دير بالك، أنت أسد اليوم! خلّصت كل {option} زي الحلاوة!",
+    "🌟 يا زلمة، شغلك فنان! مبروك الانتهاء من {option}!",
+    "🚀 والله إنك صاروخ! خلّصت {option} وصرت جاهز للي جاي!",
+    "🥳 هييييه! مبروك يا كبير، مراجعة {option} خلصت على أحسن ما يرام!",
+    "⚡ بسرعة البرق ودقة الصقر! الله يبارك فيك، خلّصت كل شي!",
+    "🎯 هدف في المرمى! يا عيني عليك، {option} كلها مراجعة ومضبوطة!",
+    "😎 يا معلم، شغلك نظيف زي الذهب! خلّصت {option} وأنت الأول!",
+    "❤️ والله فخورين فيك يا بطل الأردن! استمر هيك!",
 ]
 
 def celebrate_save():
@@ -298,7 +319,8 @@ def celebrate_save():
     msg = random.choice(SAVE_MESSAGES)
     st.markdown(f"""
         <div style="text-align: center; padding: 1.5rem; background: linear-gradient(90deg, #48bb78, #1e40af); 
-             color: white; border-radius: 15px; margin: 2rem 0; font-size: 1.8em; font-weight: bold;">
+             color: white; border-radius: 15px; margin: 2rem 0; font-size: 1.8em; font-weight: bold;
+             box-shadow: 0 8px 25px rgba(0,0,0,0.2);">
             🎉 {msg} 🎉
         </div>
     """, unsafe_allow_html=True)
@@ -313,15 +335,16 @@ def celebrate_completion():
     st.balloons()
     time.sleep(1)
     st.balloons()
+    
     st.markdown(f"""
         <div style="text-align: center; padding: 3rem; background: linear-gradient(135deg, #667eea, #764ba2); 
              border-radius: 25px; margin: 3rem 0; box-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-            <h1 style="color: white; font-size: 3em;">{msg}</h1>
+            <h1 style="color: white; font-size: 3em; margin-bottom: 1rem;">{msg}</h1>
             <p style="color: white; font-size: 1.8em;">يلا، نكمل اللي جاي... أنت قادر على كل شي! 🇯🇴💪</p>
         </div>
     """, unsafe_allow_html=True)
 
-# ==================== عرض البيانات والنموذج ====================
+# ==================== عرض السجل + أزرار + نموذج التصحيح اليدوي (الجزء المعدل) ====================
 def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_records: int):
     qistas_data = {k: ('' if pd.isna(v) else v) for k, v in qistas_df.iloc[current_index].to_dict().items()}
     
@@ -358,10 +381,10 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
     with col2:
         if st.button("✍️ تصحيح يدوي", use_container_width=True, key=f"manual_{current_index}"):
             st.session_state.show_custom_form = True
-            st.session_state.current_edit_data = qistas_data.copy()  # حفظ البيانات للتحرير
+            st.session_state.current_edit_data = qistas_data.copy()
             st.rerun()
 
-    # النموذج اليدوي هنا خارج الشرط السابق - هيظهر دايمًا لو مفعل
+    # نموذج التصحيح اليدوي (يظهر فقط إذا تم الضغط على الزر)
     if st.session_state.get("show_custom_form", False):
         st.markdown("---")
         st.markdown("<h3 style='color: white; text-align: center;'>تصحيح يدوي</h3>", unsafe_allow_html=True)
@@ -386,7 +409,7 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
             
             c1, c2 = st.columns(2)
             with c1:
-                if st.form_submit_button("✅ حفظ والتالي", use_container_width=True):
+                if st.form_submit_button("حفظ والتالي", use_container_width=True):
                     cleaned = {k: v.strip() if v else "" for k, v in custom_data.items()}
                     for k in reference_data:
                         if k not in cleaned:
@@ -394,10 +417,11 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
                     save_comparison_record(cleaned, 'تصحيح يدوي')
                     celebrate_save()
                     st.session_state.show_custom_form = False
-                    del st.session_state.current_edit_data
+                    if "current_edit_data" in st.session_state:
+                        del st.session_state.current_edit_data
                     move_to_next_record(total_records, current_index)
             with c2:
-                if st.form_submit_button("❌ إلغاء", use_container_width=True):
+                if st.form_submit_button("إلغاء", use_container_width=True):
                     st.session_state.show_custom_form = False
                     if "current_edit_data" in st.session_state:
                         del st.session_state.current_edit_data
@@ -420,16 +444,16 @@ def move_to_next_record(total_records: int, current_index: int) -> None:
     if current_index + 1 < total_records:
         st.session_state[idx_key] += 1
         st.session_state[max_key] = max(st.session_state.get(max_key, 0), current_index + 1)
+        st.session_state.show_custom_form = False
+        if "current_edit_data" in st.session_state:
+            del st.session_state.current_edit_data
         save_progress(st.session_state[idx_key], st.session_state[max_key])
         save_persistent_data()
         st.rerun()
     else:
         celebrate_completion()
         st.success(f"🎉 تم الانتهاء من مراجعة جميع سجلات {option} بنجاح!")
-
-# باقي الدوال زي render_navigation_buttons و render_comparison_tab و main نفسها زي السابق (ما غيرتهاش)
-
-# ... (انسخ باقي الكود من النسخة السابقة من render_navigation_buttons للآخر بدون تغيير)
+        st.info("تقدر دلوقتي تغيّر النوع من القائمة الجانبية أو تبدأ من جديد.")
 
 def render_navigation_buttons(current_index: int, total_records: int):
     st.markdown("---")
@@ -472,7 +496,7 @@ def render_comparison_tab(qistas_df: pd.DataFrame):
     else:
         st.markdown("<div style='text-align: center; padding: 3rem;'>", unsafe_allow_html=True)
         st.markdown("<h2 style='color: #667eea;'>تم الانتهاء من هذا النوع بنجاح! 🎯</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='font-size: 1.2em;'>اختر نوع تشريع آخر أو ابدأ من جديد.</p>", unsafe_allow_html=True)
+        st.markdown("<p style='font-size: 1.2em;'>اختر نوع تشريع آخر من الشريط الجانبي للمتابعة.</p>", unsafe_allow_html=True)
         if st.button("🔄 بدء جديد لهذا النوع"):
             st.session_state[SessionManager.get_unique_key("current_index")] = 0
             save_progress(0, 0)
@@ -499,6 +523,7 @@ def render_saved_data_tab():
         st.info("لا توجد بيانات محفوظة بعد.")
     st.markdown("</div>", unsafe_allow_html=True)
 
+# ==================== البرنامج الرئيسي ====================
 def main():
     apply_styles()
     st.markdown("""
