@@ -395,7 +395,6 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
         ordered_keys = ["leg_name", "leg_number", "year", "magazine_number", "magazine_page",
                         "magazine_date", "start_date", "replaced_for", "status", "cancelled_by", "end_date"]
         
-        # ترتيب الحقول: الأساسية أولاً، ثم أي حقول إضافية
         fields_to_show = [k for k in ordered_keys if k in reference_data]
         extra_fields = [k for k in reference_data.keys() if k not in ordered_keys]
         fields_to_show += extra_fields
@@ -406,21 +405,20 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
                 original_val = reference_data.get(field_key, "")
                 val_str = str(original_val) if original_val else ""
                 
-                user_input = st.text_input(arabic_label, value=val_str, key=f"input_{field_key}_{current_index}")
+                # حذفنا الـ key تمامًا ← هنا الحل!
+                user_input = st.text_input(arabic_label, value=val_str)
                 
-                # المنطق الجديد: فقط إذا تم إدخال شيء أو مسح عمدًا
-                if user_input.strip() != "":  # كتب شيء
+                if user_input.strip() != "":  
                     custom_data[field_key] = user_input.strip()
-                elif user_input == "" and original_val:  # مسح الحقل عمدًا
+                elif user_input == "" and original_val:  
                     custom_data[field_key] = ""
-                # إذا تركه كما هو → ما بنضيفه للـ custom_data
+                # لو تركه كما هو → ما بنضيفه
 
         c1, c2 = st.columns(2)
         with c1:
             if st.form_submit_button("حفظ والتالي", use_container_width=True):
-                # نملأ الحقول اللي ما تم تعديلها من القيم الأصلية
                 final_data = reference_data.copy()
-                final_data.update(custom_data)  # التعديلات تكتب فوق الأصلي
+                final_data.update(custom_data)
                 
                 save_comparison_record(final_data, 'تصحيح يدوي')
                 celebrate_save()
@@ -430,7 +428,6 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
             if st.form_submit_button("إلغاء", use_container_width=True):
                 st.session_state.show_custom_form = False
                 st.rerun()
-
 def save_comparison_record(data: dict, source: str) -> None:
     comp_key = SessionManager.get_unique_key("comparison_data")
     new_record = {
@@ -548,3 +545,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
