@@ -11,7 +11,6 @@ import io
 import os
 import gspread
 from google.oauth2.service_account import Credentials
-import hashlib
 import time
 import random
 
@@ -180,7 +179,6 @@ class SessionManager:
         st.session_state[idx_key] = current_idx
         st.session_state[max_key] = max_reached
 
-        # تهيئة متغير إظهار الفورم اليدوي
         if "show_manual_form" not in st.session_state:
             st.session_state.show_manual_form = False
 
@@ -287,12 +285,12 @@ SAVE_MESSAGES = [
     "عييييش! كفو عليك يا أسد 🦁", "الله يعطيك العافية يا غالي! شغل نظيف 👏",
     "يا زلمة إبداع! استمر هيك 💪", "هيييه! تمام يا بطل الأردن 🇯🇴",
     "والله فخورين فيك! يلا عالتالي 🚀", "كفو والله! دير بالك أنت صاروخ ⚡",
-    "يا سلام عليك!  🌟", " ايوااا هيك! أنت الأفضل 😎",
+    "يا سلام عليك! 🌟", "ايوااا هيك! أنت الأفضل 😎",
     "عفيه عليك يا نشمي! خلصتها زي المنسف بالجميد 🔥", "هيييه يا معلم! لو التشريعات بتفهم كانت صفقتلك 👏👏",
-    "يا بطل يا أردني!    🇯🇴🎶", "كفو يا غالي! أنت قدها وقدود 💪",
-    "  نجم! شغلك بيرفكت ✨", "يا زلمة فنااااااان! 🎨", 'جدددددددع والله كفووو 👏👏',
+    "يا بطل يا أردني! 🇯🇴🎶", "كفو يا غالي! أنت قدها وقدود 💪",
+    "نجم! شغلك بيرفكت ✨", "يا زلمة فنااااااان! 🎨", 'جدددددددع والله كفووو 👏👏',
     "يا معلم! شغلك على أصوله 👌", "دير بالك! أنت أسد في ميدان التشريعات 🦁",
-    "يا سلام عليك! شغلك بيرفكت 🌟", 'سفاااااح والله '
+    "يا سلام عليك! شغلك بيرفكت 🌟", 'سفاااااح والله'
 ]
 
 FINAL_MESSAGES = [
@@ -334,11 +332,19 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
     
     st.markdown("<h3 style='color: #667eea !important; text-align: center;'>بيانات قانونية</h3>", unsafe_allow_html=True)
     
+    # الحقول المعروضة دائمًا في الجدول (بما فيها تاريخ الانتهاء)
     DISPLAY_FIELDS = [
-        ("اسم التشريع", "leg_name"), ("رقم التشريع", "leg_number"), ("السنة", "year"),
-        ("رقم الجريدة", "magazine_number"), ("صفحة الجريدة", "magazine_page"), ("تاريخ الجريدة", "magazine_date"),
-        ("تاريخ السريان", "start_date"), ("يحل محل", "replaced_for"), ("الحالة", "status"),
-        ("ألغي بواسطة", "cancelled_by"), ("تاريخ الانتهاء", "end_date"),
+        ("اسم التشريع", "leg_name"),
+        ("رقم التشريع", "leg_number"),
+        ("السنة", "year"),
+        ("رقم الجريدة", "magazine_number"),
+        ("صفحة الجريدة", "magazine_page"),
+        ("تاريخ الجريدة", "magazine_date"),
+        ("تاريخ السريان", "start_date"),
+        ("يحل محل", "replaced_for"),
+        ("الحالة", "status"),
+        ("ألغي بواسطة", "cancelled_by"),
+        ("تاريخ الانتهاء", "end_date"),  # دائمًا موجود
     ]
     
     rows = []
@@ -373,7 +379,6 @@ def render_selection_buttons(qistas_data: dict, current_index: int, total_record
             st.session_state.show_manual_form = True
             st.rerun()
 
-    # عرض الفورم اليدوي إذا تم الضغط على الزر
     if st.session_state.get("show_manual_form", False):
         render_custom_form(qistas_data, current_index, total_records)
 
@@ -385,12 +390,14 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
         custom_data = {}
         cols = st.columns(3)
         
+        # الحقول الثابتة (بما فيها end_date دائمًا)
         ordered_keys = [
             "leg_name", "leg_number", "year", "magazine_number", "magazine_page",
-            "magazine_date", "start_date", "replaced_for", "status", "cancelled_by", "end_date"
+            "magazine_date", "start_date", "replaced_for", "status",
+            "cancelled_by", "end_date"  # دائمًا آخر حقل ومضمون الظهور
         ]
         
-        # ترتيب الحقول + أي حقول إضافية
+        # إضافة أي حقول إضافية موجودة في البيانات الأصلية
         all_keys = ordered_keys + [k for k in reference_data.keys() if k not in ordered_keys]
         
         for idx, field_key in enumerate(all_keys):
@@ -409,7 +416,6 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
                 if value.strip() != default_value.strip():
                     custom_data[field_key] = value.strip() if value.strip() else ""
         
-        # دمج التعديلات مع البيانات الأصلية
         final_data = reference_data.copy()
         final_data.update(custom_data)
         
@@ -557,4 +563,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
