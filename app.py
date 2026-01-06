@@ -344,12 +344,12 @@ def celebrate_completion():
         </div>
     """, unsafe_allow_html=True)
 
-# ==================== عرض السجل + أزرار + نموذج التصحيح اليدوي (الجزء المعدل) ====================
+# ==================== عرض السجل والأزرار والنموذج (التعديل النهائي المضمون) ====================
 def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_records: int):
     qistas_data = {k: ('' if pd.isna(v) else v) for k, v in qistas_df.iloc[current_index].to_dict().items()}
     
+    # عرض جدول بيانات قسطاس
     st.markdown("<h3 style='color: #667eea !important; text-align: center;'>بيانات قسطاس</h3>", unsafe_allow_html=True)
-    
     DISPLAY_FIELDS = [
         ("اسم التشريع", "leg_name"), ("رقم التشريع", "leg_number"), ("السنة", "year"),
         ("رقم الجريدة", "magazine_number"), ("صفحة الجريدة", "magazine_page"), ("تاريخ الجريدة", "magazine_date"),
@@ -361,7 +361,6 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
         val = qistas_data.get(key, '')
         display_val = '—' if str(val).strip() == '' else str(val)
         rows.append((label, display_val))
-    
     html = ["<div class='cmp-wrapper'><table class='cmp-table'>"]
     html.append("<thead><tr><th>اسم الحقل</th><th>القيمة</th></tr></thead><tbody>")
     for label, val in rows:
@@ -369,7 +368,7 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
     html.append("</tbody></table></div>")
     st.markdown("\n".join(html), unsafe_allow_html=True)
 
-    # أزرار الحفظ
+    # أزرار الاختيار
     st.markdown("---")
     st.markdown("<h3 style='color: white; text-align: center;'>احفظ البيانات الصحيحة</h3>", unsafe_allow_html=True)
     col1, col2 = st.columns(2)
@@ -384,12 +383,12 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
             st.session_state.current_edit_data = qistas_data.copy()
             st.rerun()
 
-    # نموذج التصحيح اليدوي (يظهر فقط إذا تم الضغط على الزر)
+    # النموذج اليدوي: خارج كل الشروط الداخلية، يعتمد فقط على session_state (زي الكود الثاني تماماً)
     if st.session_state.get("show_custom_form", False):
         st.markdown("---")
         st.markdown("<h3 style='color: white; text-align: center;'>تصحيح يدوي</h3>", unsafe_allow_html=True)
         
-        reference_data = st.session_state.current_edit_data
+        reference_data = st.session_state.get("current_edit_data", qistas_data)
         
         with st.form("custom_form", clear_on_submit=False):
             custom_data = {}
@@ -405,15 +404,17 @@ def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_rec
                     label = FIELD_LABELS.get(key, key)
                     val = reference_data.get(key, "")
                     value_str = str(val) if val else ""
-                    custom_data[key] = st.text_input(label, value=value_str, key=f"edit_{key}_{current_index}")
+                    # key فريد عشان ما يتعارضش
+                    custom_data[key] = st.text_input(label, value=value_str, key=f"custom_input_{key}_{current_index}")
             
             c1, c2 = st.columns(2)
             with c1:
                 if st.form_submit_button("حفظ والتالي", use_container_width=True):
-                    cleaned = {k: v.strip() if v else "" for k, v in custom_data.items()}
+                    cleaned = {k: (v.strip() if v else "") for k, v in custom_data.items()}
+                    # ملء الحقول الناقصة
                     for k in reference_data:
                         if k not in cleaned:
-                            cleaned[k] = reference_data.get(k, "")
+                            cleaned[k] = str(reference_data.get(k, ""))
                     save_comparison_record(cleaned, 'تصحيح يدوي')
                     celebrate_save()
                     st.session_state.show_custom_form = False
