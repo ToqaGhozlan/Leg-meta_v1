@@ -316,7 +316,7 @@ FINAL_MESSAGES = [
 def celebrate_save():
     """احتفال آمن بعد كل حفظ (بدون confetti عشان التوافق)"""
     st.balloons()
-    st.snow()  # ثلج خفيف وحلو كبديل
+    st.snow()
     msg = random.choice(SAVE_MESSAGES)
     st.markdown(f"""
         <div style="text-align: center; padding: 1.5rem; background: linear-gradient(90deg, #48bb78, #1e40af); 
@@ -326,7 +326,7 @@ def celebrate_save():
         </div>
     """, unsafe_allow_html=True)
     time.sleep(1)
-    st.balloons()  # بالونات تانية عشان الفرحة تطول
+    st.balloons()
 
 def celebrate_completion():
     """احتفال كبير عند انتهاء النوع كاملاً - آمن"""
@@ -336,7 +336,7 @@ def celebrate_completion():
     time.sleep(1)
     st.balloons()
     time.sleep(1)
-    st.balloons()  # ثلاث مرات عشان الاحتفال يكون أسطوري
+    st.balloons()
     
     st.markdown(f"""
         <div style="text-align: center; padding: 3rem; background: linear-gradient(135deg, #667eea, #764ba2); 
@@ -345,9 +345,6 @@ def celebrate_completion():
             <p style="color: white; font-size: 1.8em;">يلا، نكمل اللي جاي... أنت قادر على كل شي! 🇯🇴💪</p>
         </div>
     """, unsafe_allow_html=True)
-
-# باقي الكود زي ما هو (من render_law_comparison للآخر) بدون تغيير
-# ... (نفس الكود اللي بعثته قبل كده بالضبط، بس مع الدالتين الجديدتين أعلاه)
 
 def render_law_comparison(qistas_df: pd.DataFrame, current_index: int, total_records: int):
     qistas_data = {k: ('' if pd.isna(v) else v) for k, v in qistas_df.iloc[current_index].to_dict().items()}
@@ -378,7 +375,7 @@ def render_selection_buttons(qistas_data: dict, current_index: int, total_record
     with col1:
         if st.button("✅ حفظ كما هو (قسطاس)", use_container_width=True, key=f"save_as_is_{current_index}"):
             save_comparison_record(qistas_data, 'قسطاس')
-            celebrate_save()  # احتفال بعد كل حفظ
+            celebrate_save()
             move_to_next_record(total_records, current_index)
     with col2:
         if st.button("✍️ تصحيح يدوي", use_container_width=True, key=f"manual_{current_index}"):
@@ -394,24 +391,31 @@ def render_custom_form(reference_data: dict, current_index: int, total_records: 
     with st.form("custom_form", clear_on_submit=False):
         custom_data = {}
         cols_list = st.columns(3)
+        
+        # ترتيب الحقول المطلوبة أولاً (بالعربي ومملوءة مسبقاً)
         ordered_keys = ["leg_name", "leg_number", "year", "magazine_number", "magazine_page",
                         "magazine_date", "start_date", "replaced_for", "status", "cancelled_by", "end_date"]
+        
+        # جمع الحقول الموجودة في البيانات حسب الترتيب المطلوب + أي حقول إضافية
         fields = [k for k in ordered_keys if k in reference_data] + [k for k in reference_data if k not in ordered_keys]
+        
         for i, key in enumerate(fields):
             with cols_list[i % 3]:
-                label = FIELD_LABELS.get(key, key)
+                label = FIELD_LABELS.get(key, key)  # اسم الحقل بالعربي
                 val = reference_data.get(key, "")
                 value_str = str(val) if val else ""
-                custom_data[key] = st.text_input(label, value=value_str)
+                custom_data[key] = st.text_input(label, value=value_str, key=f"custom_{key}_{current_index}")
+        
         c1, c2 = st.columns(2)
         with c1:
             if st.form_submit_button("حفظ والتالي", use_container_width=True):
                 cleaned = {k: v.strip() if v else "" for k, v in custom_data.items()}
+                # إضافة أي حقول مفقودة من البيانات الأصلية
                 for k in reference_data:
                     if k not in cleaned:
                         cleaned[k] = reference_data[k] if reference_data[k] else ""
                 save_comparison_record(cleaned, 'تصحيح يدوي')
-                celebrate_save()  # احتفال بعد كل حفظ
+                celebrate_save()
                 st.session_state.show_custom_form = False
                 move_to_next_record(total_records, current_index)
         with c2:
@@ -536,5 +540,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
