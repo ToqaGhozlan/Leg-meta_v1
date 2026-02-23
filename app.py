@@ -604,7 +604,7 @@ def main():
     st.set_page_config(page_title="منظومة مراجعة التشريعات", layout="wide", page_icon="⚖️")
 
     st.sidebar.markdown('<div class="sidebar-title">نوع التشريع</div>', unsafe_allow_html=True)
-    option = st.sidebar.radio("", ["قانون ج1", "قانون ج2"])
+    option = st.sidebar.radio("", ["نظام ج1", "نظام ج2"])
     st.session_state.option = option
 
     if "current_idx" not in st.session_state:
@@ -645,4 +645,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
 
