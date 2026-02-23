@@ -8,6 +8,7 @@ import gspread
 from google.oauth2.service_account import Credentials
 import time
 import random
+import re
 
 # ────────────────────────────────────────────────
 # 1. الاتصال بـ Google Sheets
@@ -388,17 +389,37 @@ DATA_PATHS = {
     "نظام ج2":  r"Bylaws2.json",
 }
 
-REQUIRED_KEYS = [
-    "اسم القانون", "الرقم", "السنة", "الجريدة الرسمية", "ModifiedLeg",
-]
+def parse_jarida(publication_text: str) -> tuple:
+    text = str(publication_text).strip()
+    if not text:
+        return "—", "—", "—"
 
-def parse_jarida(val: str) -> tuple:
-    parts = [p.strip() for p in str(val).split(" - ")]
-    return (
-        parts[0] if len(parts) > 0 else "—",
-        parts[1].replace("ص ", "") if len(parts) > 1 else "—",
-        parts[2] if len(parts) > 2 else "—",
-    )
+    mag_num = "—"
+    mag_page = "—"
+    mag_date = "—"
+
+    # نمط أساسي: رقم ... على الصفحة ... بتاريخ ...
+    match = re.search(r'رقم\s*(\d+).*?صفحة\s*(\d+).*?بتاريخ\s*([\d-]+)', text, re.IGNORECASE | re.UNICODE)
+    if match:
+        mag_num, mag_page, mag_date = match.groups()
+        return mag_num, mag_page, mag_date
+
+    # محاولة أكثر مرونة
+    numbers = re.findall(r'\b\d{3,6}\b', text)     # أرقام الجرائد غالبًا 4-6 أرقام
+    pages   = re.findall(r'\b\d{1,4}\b', text)     # الصفحات عادة أقل
+    dates   = re.findall(r'\d{2}-\d{2}-\d{4}', text)
+
+    if numbers:
+        mag_num = numbers[0]
+    if len(numbers) > 1:
+        mag_page = numbers[1]
+    elif pages:
+        mag_page = pages[-1]   # آخر رقم صغير غالبًا صفحة
+
+    if dates:
+        mag_date = dates[0]
+
+    return mag_num, mag_page, mag_date
 
 @st.cache_data
 def load_data(kind: str) -> list:
@@ -416,14 +437,21 @@ def load_data(kind: str) -> list:
 
     records = []
     for item in raw:
-        mag_num, mag_page, mag_date = parse_jarida(item.get("Publication", ""))
+        publication = str(item.get("Publication", "")).strip()
+
+        mag_num, mag_page, mag_date = parse_jarida(publication)
+
+        # التعديل: ModifiedLeg يؤخذ إذا موجود، وإلا فارغ
+        modified_leg = item.get("ModifiedLeg", "")
+        if modified_leg is None or (isinstance(modified_leg, str) and not modified_leg.strip()):
+            modified_leg = ""
 
         record = {
             "اسم القانون": str(item.get("Leg_Name", "")).strip(),
             "الرقم": str(item.get("Leg_Number", "")).strip(),
             "السنة": str(item.get("Year", "")).strip(),
-            "الجريدة الرسمية": str(item.get("Publication", "")).strip(),
-            "ModifiedLeg": "",  # غير موجود في الملف الجديد → فارغ
+            "الجريدة الرسمية": publication,
+            "ModifiedLeg": modified_leg,
             "magazine_number": mag_num,
             "magazine_page": mag_page,
             "magazine_date": mag_date,
@@ -634,7 +662,6 @@ def main():
     else:
         show_record(st.session_state.current_idx, data, total)
 
-    # عرض المحفوظات اختياري في السايدبار
     if st.sidebar.checkbox("عرض السجلات المحفوظة"):
         if st.session_state.local_saved:
             df = pd.DataFrame(st.session_state.local_saved)
