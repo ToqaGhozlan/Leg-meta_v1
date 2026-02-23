@@ -19,7 +19,7 @@ try:
     ]
     creds = Credentials.from_service_account_info(st.secrets["google"], scopes=scopes)
     client = gspread.authorize(creds)
-    SPREADSHEET_NAME = "Leg_Meta_v2"  
+    SPREADSHEET_NAME = "Diwan_Legs"  
     spreadsheet = client.open(SPREADSHEET_NAME)
 except Exception as e:
     st.error("خطأ في الاتصال بـ Google Sheets")
@@ -70,7 +70,7 @@ if not st.session_state.authenticated:
 user_name = st.session_state.user_name
 
 # ────────────────────────────────────────────────
-# 3. الـ Styles (نفس التصميم السابق)
+# 3. الـ Styles (نفس تصميمك الجديد – أكملته هنا)
 # ────────────────────────────────────────────────
 def apply_styles():
     st.markdown("""
@@ -388,6 +388,18 @@ DATA_PATHS = {
     "نظام ج2":  r"Bylaws2.json",
 }
 
+REQUIRED_KEYS = [
+    "اسم القانون", "الرقم", "السنة", "الجريدة الرسمية", "ModifiedLeg",
+]
+
+def parse_jarida(val: str) -> tuple:
+    parts = [p.strip() for p in str(val).split(" - ")]
+    return (
+        parts[0] if len(parts) > 0 else "—",
+        parts[1].replace("ص ", "") if len(parts) > 1 else "—",
+        parts[2] if len(parts) > 2 else "—",
+    )
+
 @st.cache_data
 def load_data(kind: str) -> list:
     path = DATA_PATHS.get(kind, "")
@@ -395,7 +407,7 @@ def load_data(kind: str) -> list:
         st.error(f"ملف الداتا غير موجود: {path}")
         st.stop()
 
-    with open(path, encoding="utf-8") as f:
+    with open(path, encoding="utf-8-sig") as f:
         raw = json.load(f)
 
     if not isinstance(raw, list) or not raw:
@@ -404,18 +416,20 @@ def load_data(kind: str) -> list:
 
     records = []
     for item in raw:
+        mag_num, mag_page, mag_date = parse_jarida(item.get("الجريدة الرسمية", ""))
         record = {
-            "Leg_Name": str(item.get("Leg_Name", "")).strip(),
-            "Leg_Number": str(item.get("Leg_Number", "")).strip(),
-            "Year": str(item.get("Year", "")).strip(),
-            "Magazine_Number": str(item.get("Magazine_Number", "")).strip(),
-            "Magazine_Page": str(item.get("Magazine_Page", "")).strip(),
-            "Magazine_Date": str(item.get("Magazine_Date", "")).strip(),
-            "Publication": str(item.get("Publication", "")).strip(),
-            # حقول التعديل اليدوي – تبدأ فارغة
-            "ModifiedLeg": "",
+            "اسم القانون": str(item.get("اسم القانون", "")).strip(),
+            "الرقم": str(item.get("الرقم", "")).strip(),
+            "السنة": str(item.get("السنة", "")).strip(),
+            "الجريدة الرسمية": str(item.get("الجريدة الرسمية","")).strip(),
+            "ModifiedLeg": str(item.get("ModifiedLeg", "")).strip(),
+            "magazine_number": mag_num,
+            "magazine_page": mag_page,
+            "magazine_date": mag_date,
             "ModifiedLeg_رقم": "",
             "ModifiedLeg_سنة": "",
+            "ModifiedLeg_جريدة": "",
+            "ModifiedLeg_صفحة": "",
         }
         records.append(record)
     return records
@@ -477,8 +491,7 @@ def show_record(idx, data, total):
         </div>
     """, unsafe_allow_html=True)
 
-    # إذا كان فيه رابط في الـ JSON، أضيفيه هنا (غيّري المفتاح إذا كان مختلف)
-    link = ""  # row.get("رابط", "") إذا وجد
+    link = row.get("الرابط", "").strip()
     link_html = (
         '<div class="law-link-wrap">'
         f'<a href="{link}" target="_blank" class="law-link">🔗 عرض النص الكامل</a>'
@@ -486,17 +499,17 @@ def show_record(idx, data, total):
     ) if link else ""
 
     meta_html = (
-        f'<div class="meta-item"><span class="meta-label">رقم النظام</span><span class="meta-value">{row.get("Leg_Number", "—")}</span></div>'
-        f'<div class="meta-item"><span class="meta-label">السنة</span><span class="meta-value">{row.get("Year", "—")}</span></div>'
-        f'<div class="meta-item"><span class="meta-label">رقم الجريدة</span><span class="meta-value">{row.get("Magazine_Number", "—")}</span></div>'
-        f'<div class="meta-item"><span class="meta-label">الصفحة</span><span class="meta-value">{row.get("Magazine_Page", "—")}</span></div>'
-        f'<div class="meta-item"><span class="meta-label">تاريخ الجريدة</span><span class="meta-value">{row.get("Magazine_Date", "—")}</span></div>'
+        f'<div class="meta-item"><span class="meta-label">رقم القانون</span><span class="meta-value">{row.get("الرقم", "—")}</span></div>'
+        f'<div class="meta-item"><span class="meta-label">السنة</span><span class="meta-value">{row.get("السنة", "—")}</span></div>'
+        f'<div class="meta-item"><span class="meta-label">رقم الجريدة</span><span class="meta-value">{row.get("magazine_number", "—")}</span></div>'
+        f'<div class="meta-item"><span class="meta-label">الصفحة</span><span class="meta-value">{row.get("magazine_page", "—")}</span></div>'
+        f'<div class="meta-item"><span class="meta-label">تاريخ الجريدة</span><span class="meta-value">{row.get("magazine_date", "—")}</span></div>'
     )
 
     card_html = (
         '<div class="law-card">'
-        '<div class="card-badge">نص النظام</div>'
-        f'<h3>{row.get("Leg_Name", "—")}</h3>'
+        '<div class="card-badge">نص القانون</div>'
+        f'<h3>{row.get("اسم القانون", "—")}</h3>'
         '<div class="meta-row">' + meta_html + '</div>'
         + link_html +
         '</div>'
@@ -530,35 +543,36 @@ def edit_form(idx, original):
     st.markdown(f'<div class="record-counter"><span>✏️</span><span>تعديل السجل {idx+1}</span></div>', unsafe_allow_html=True)
 
     with st.form("edit_form"):
-        st.markdown('<p class="section-title">📋 بيانات النظام الأصلي</p>', unsafe_allow_html=True)
+        st.markdown('<p class="section-title">📋 بيانات القانون الرئيسي</p>', unsafe_allow_html=True)
 
-        law_name = st.text_area("اسم النظام", value=original.get("Leg_Name", ""), height=100)
+        law_name = st.text_area("اسم القانون", value=original.get("اسم القانون", ""), height=85)
         c1, c2 = st.columns(2)
-        law_num  = c1.text_input("رقم النظام", value=original.get("Leg_Number", ""))
-        law_year = c2.text_input("السنة", value=original.get("Year", ""))
+        law_num  = c1.text_input("رقم القانون", value=original.get("الرقم", ""))
+        law_year = c2.text_input("سنة القانون", value=original.get("السنة", ""))
 
         st.markdown('<div class="gold-divider"></div>', unsafe_allow_html=True)
         st.markdown('<p class="section-title">📜 بيانات التشريع المعدل</p>', unsafe_allow_html=True)
 
-        mod_name = st.text_area("اسم التشريع المعدل", value=original.get("ModifiedLeg", ""), height=100)
+        mod_name = st.text_area("اسم التشريع المعدل", value=original.get("ModifiedLeg", ""), height=85)
 
         st.markdown('<p style="color:rgba(248,244,237,0.45); font-size:0.82rem; direction:rtl; margin:0.3rem 0 0.8rem;">أدخل بيانات التشريع المعدل أدناه ↓</p>', unsafe_allow_html=True)
 
         d1, d2 = st.columns(2)
-        mod_num  = d1.text_input("رقم التشريع المعدل", value=original.get("ModifiedLeg_رقم", ""), placeholder="مثال: 22")
-        mod_year = d2.text_input("سنة التشريع المعدل", value=original.get("ModifiedLeg_سنة", ""), placeholder="مثال: 2023")
+        mod_num  = d1.text_input("رقم التشريع المعدل", value=original.get("ModifiedLeg_رقم", ""), placeholder="مثال: 9")
+        mod_year = d2.text_input("سنة التشريع المعدل", value=original.get("ModifiedLeg_سنة", ""), placeholder="مثال: 1961")
 
         st.markdown("<br>", unsafe_allow_html=True)
         b1, b2 = st.columns(2)
 
         if b1.form_submit_button("💾 حفظ والمتابعة", use_container_width=True, type="primary"):
             d = original.copy()
-            d["Leg_Name"]         = law_name.strip()
-            d["Leg_Number"]       = law_num.strip()
-            d["Year"]             = law_year.strip()
-            d["ModifiedLeg"]      = mod_name.strip()
-            d["ModifiedLeg_رقم"]  = mod_num.strip()
-            d["ModifiedLeg_سنة"]  = mod_year.strip()
+            d["اسم القانون"]       = law_name.strip()
+            d["الرقم"]             = law_num.strip()
+            d["السنة"]             = law_year.strip()
+            d["ModifiedLeg"]       = mod_name.strip()
+            d["ModifiedLeg_رقم"]   = mod_num.strip()
+            d["ModifiedLeg_سنة"]   = mod_year.strip()
+            # إذا أردت إضافة حقول الجريدة لاحقًا أضيفيها هنا
             save_record(d, "معدل يدويًا")
             celebrate_save()
             st.session_state.editing = False
@@ -590,7 +604,7 @@ def main():
     st.set_page_config(page_title="منظومة مراجعة التشريعات", layout="wide", page_icon="⚖️")
 
     st.sidebar.markdown('<div class="sidebar-title">نوع التشريع</div>', unsafe_allow_html=True)
-    option = st.sidebar.radio("", ["نظام ج1", "نظام ج2"])
+    option = st.sidebar.radio("", ["قانون ج1", "قانون ج2"])
     st.session_state.option = option
 
     if "current_idx" not in st.session_state:
@@ -620,14 +634,14 @@ def main():
     else:
         show_record(st.session_state.current_idx, data, total)
 
+    # عرض المحفوظات اختياري في السايدبار
     if st.sidebar.checkbox("عرض السجلات المحفوظة"):
         if st.session_state.local_saved:
             df = pd.DataFrame(st.session_state.local_saved)
-            cols = ["تاريخ", "الحالة", "Leg_Name"]
+            cols = ["تاريخ", "الحالة", "اسم القانون"]
             st.sidebar.dataframe(df[cols] if all(c in df.columns for c in cols) else df, use_container_width=True)
         else:
             st.sidebar.info("لا توجد سجلات بعد")
 
 if __name__ == "__main__":
     main()
-
