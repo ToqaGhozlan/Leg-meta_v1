@@ -71,7 +71,7 @@ if not st.session_state.authenticated:
 user_name = st.session_state.user_name
 
 # ────────────────────────────────────────────────
-# 3. الـ Styles
+# 3. الـ Styles (كما هو)
 # ────────────────────────────────────────────────
 def apply_styles():
     st.markdown("""
@@ -238,7 +238,10 @@ def apply_styles():
         }
         .amended-card .ac-name {
             color: var(--cream) !important; font-family: 'Amiri', serif !important;
-            font-size: 1.1rem; line-height: 1.75; margin: 0 0 1rem !important; text-align: right !important;
+            font-size: 1.1rem !important; line-height: 1.75 !important;
+            margin: 0 0 1rem !important; text-align: right !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
         }
 
         .record-counter {
@@ -398,15 +401,13 @@ def parse_jarida(publication_text: str) -> tuple:
     mag_page = "—"
     mag_date = "—"
 
-    # نمط أساسي: رقم ... على الصفحة ... بتاريخ ...
     match = re.search(r'رقم\s*(\d+).*?صفحة\s*(\d+).*?بتاريخ\s*([\d-]+)', text, re.IGNORECASE | re.UNICODE)
     if match:
         mag_num, mag_page, mag_date = match.groups()
         return mag_num, mag_page, mag_date
 
-    # محاولة أكثر مرونة
-    numbers = re.findall(r'\b\d{3,6}\b', text)     # أرقام الجرائد غالبًا 4-6 أرقام
-    pages   = re.findall(r'\b\d{1,4}\b', text)     # الصفحات عادة أقل
+    numbers = re.findall(r'\b\d{3,6}\b', text)
+    pages   = re.findall(r'\b\d{1,4}\b', text)
     dates   = re.findall(r'\d{2}-\d{2}-\d{4}', text)
 
     if numbers:
@@ -414,14 +415,14 @@ def parse_jarida(publication_text: str) -> tuple:
     if len(numbers) > 1:
         mag_page = numbers[1]
     elif pages:
-        mag_page = pages[-1]   # آخر رقم صغير غالبًا صفحة
+        mag_page = pages[-1]
 
     if dates:
         mag_date = dates[0]
 
     return mag_num, mag_page, mag_date
 
-@st.cache_data
+@st.cache_data(ttl=300)  # 5 دقائق - يمكنك تغييره أو حذفه لاحقاً
 def load_data(kind: str) -> list:
     path = DATA_PATHS.get(kind, "")
     if not path or not os.path.exists(path):
@@ -438,13 +439,10 @@ def load_data(kind: str) -> list:
     records = []
     for item in raw:
         publication = str(item.get("Publication", "")).strip()
-
         mag_num, mag_page, mag_date = parse_jarida(publication)
 
-        # التعديل: ModifiedLeg يؤخذ إذا موجود، وإلا فارغ
-        modified_leg = item.get("ModifiedLeg", "")
-        if modified_leg is None or (isinstance(modified_leg, str) and not modified_leg.strip()):
-            modified_leg = ""
+        # التعديل الرئيسي هنا: استخراج بسيط وآمن
+        modified_leg = str(item.get("ModifiedLeg", "")).strip()
 
         record = {
             "اسم القانون": str(item.get("Leg_Name", "")).strip(),
@@ -552,6 +550,9 @@ def show_record(idx, data, total):
         </div>
     """, unsafe_allow_html=True)
 
+    # debug مؤقت - يمكن حذفه بعد التأكد
+    st.caption(f"Debug ModifiedLeg: {row.get('ModifiedLeg', 'غير موجود')}")
+
     st.markdown('<div class="gold-divider"></div>', unsafe_allow_html=True)
     st.markdown('<p class="section-title">🔍 هل التشريع المعدل صحيح؟</p>', unsafe_allow_html=True)
 
@@ -634,6 +635,10 @@ def main():
     st.sidebar.markdown('<div class="sidebar-title">نوع التشريع</div>', unsafe_allow_html=True)
     option = st.sidebar.radio("", ["نظام ج2", "نظام ج1"])
     st.session_state.option = option
+
+    if st.sidebar.button("↻ إعادة تحميل البيانات"):
+        st.cache_data.clear()
+        st.rerun()
 
     if "current_idx" not in st.session_state:
         st.session_state.current_idx, st.session_state.max_reached = load_progress()
