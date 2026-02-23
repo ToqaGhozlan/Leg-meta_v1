@@ -19,7 +19,7 @@ try:
     ]
     creds = Credentials.from_service_account_info(st.secrets["google"], scopes=scopes)
     client = gspread.authorize(creds)
-    SPREADSHEET_NAME = "Diwan_Legs"  
+    SPREADSHEET_NAME = "Leg_Meta_v2"  
     spreadsheet = client.open(SPREADSHEET_NAME)
 except Exception as e:
     st.error("خطأ في الاتصال بـ Google Sheets")
@@ -645,3 +645,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
