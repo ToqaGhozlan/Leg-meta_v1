@@ -192,7 +192,7 @@ def load_data(kind: str) -> list:
         st.error(f"ملف الداتا غير موجود: {path}")
         st.stop()
 
-    with open(path, encoding="utf-8") as f:
+    with open(path, encoding="utf-8-sig") as f:
         raw = json.load(f)
 
     if not isinstance(raw, list) or not raw:
