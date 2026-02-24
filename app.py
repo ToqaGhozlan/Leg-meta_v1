@@ -71,7 +71,7 @@ if not st.session_state.authenticated:
 user_name = st.session_state.user_name
 
 # ────────────────────────────────────────────────
-# 3. الـ Styles (كما هو)
+# 3. الـ Styles
 # ────────────────────────────────────────────────
 def apply_styles():
     st.markdown("""
@@ -422,7 +422,7 @@ def parse_jarida(publication_text: str) -> tuple:
 
     return mag_num, mag_page, mag_date
 
-@st.cache_data(ttl=300)  # 5 دقائق - يمكنك تغييره أو حذفه لاحقاً
+@st.cache_data(ttl=300)
 def load_data(kind: str) -> list:
     path = DATA_PATHS.get(kind, "")
     if not path or not os.path.exists(path):
@@ -439,23 +439,45 @@ def load_data(kind: str) -> list:
     records = []
     for item in raw:
         publication = str(item.get("Publication", "")).strip()
-        mag_num, mag_page, mag_date = parse_jarida(publication)
 
-        # التعديل الرئيسي هنا: استخراج بسيط وآمن
-        modified_leg = str(item.get("ModifiedLeg", "")).strip()
+        # ─── إصلاح المشكلة ───────────────────────────────────────────
+        # Bylaws2 يحتوي على مفاتيح جاهزة Magazine_Number / Magazine_Page / Magazine_Date
+        # نقرأها مباشرة، وإن لم تكن موجودة نرجع لـ parse_jarida كـ fallback
+        mag_num_raw  = str(item.get("Magazine_Number", "")).strip()
+        mag_page_raw = str(item.get("Magazine_Page", "")).strip()
+        mag_date_raw = str(item.get("Magazine_Date", "")).strip()
+
+        if mag_num_raw or mag_page_raw or mag_date_raw:
+            # البيانات موجودة مباشرة في الـ JSON (مثل Bylaws2)
+            mag_num  = mag_num_raw  or "—"
+            mag_page = mag_page_raw or "—"
+            mag_date = mag_date_raw or "—"
+        else:
+            # fallback لـ parse_jarida (مثل Bylaws1 اللي ما عنده هذه المفاتيح)
+            mag_num, mag_page, mag_date = parse_jarida(publication)
+
+        # قراءة ModifiedLeg - نجرب كل الاحتمالات الممكنة للاسم
+        modified_leg = (
+            str(item.get("ModifiedLeg", "")).strip()
+            or str(item.get("modifiedLeg", "")).strip()
+            or str(item.get("modified_leg", "")).strip()
+            or str(item.get("Modified_Leg", "")).strip()
+            or ""
+        )
+        # ─────────────────────────────────────────────────────────────
 
         record = {
-            "اسم القانون": str(item.get("Leg_Name", "")).strip(),
-            "الرقم": str(item.get("Leg_Number", "")).strip(),
-            "السنة": str(item.get("Year", "")).strip(),
-            "الجريدة الرسمية": publication,
-            "ModifiedLeg": modified_leg,
-            "magazine_number": mag_num,
-            "magazine_page": mag_page,
-            "magazine_date": mag_date,
-            "ModifiedLeg_رقم": "",
-            "ModifiedLeg_سنة": "",
-            "ModifiedLeg_جريدة": "",
+            "اسم القانون":      str(item.get("Leg_Name", "")).strip(),
+            "الرقم":            str(item.get("Leg_Number", "")).strip(),
+            "السنة":            str(item.get("Year", "")).strip(),
+            "الجريدة الرسمية":  publication,
+            "ModifiedLeg":      modified_leg,
+            "magazine_number":  mag_num,
+            "magazine_page":    mag_page,
+            "magazine_date":    mag_date,
+            "ModifiedLeg_رقم":  "",
+            "ModifiedLeg_سنة":  "",
+            "ModifiedLeg_جريدة":"",
             "ModifiedLeg_صفحة": "",
         }
         records.append(record)
@@ -543,15 +565,16 @@ def show_record(idx, data, total):
     )
     st.markdown(card_html, unsafe_allow_html=True)
 
+    # عرض التشريع المعدل - مع رسالة واضحة إذا كان فارغاً
+    modified_leg_value = row.get('ModifiedLeg', '').strip()
+    display_value = modified_leg_value if modified_leg_value else "⚠️ لا يوجد تشريع معدل لهذا القانون"
+
     st.markdown(f"""
         <div class="amended-card">
             <div class="ac-label">📜 التشريع المعدل</div>
-            <p class="ac-name">{row.get('ModifiedLeg', '—')}</p>
+            <p class="ac-name">{display_value}</p>
         </div>
     """, unsafe_allow_html=True)
-
-    # debug مؤقت - يمكن حذفه بعد التأكد
-    st.caption(f"Debug ModifiedLeg: {row.get('ModifiedLeg', 'غير موجود')}")
 
     st.markdown('<div class="gold-divider"></div>', unsafe_allow_html=True)
     st.markdown('<p class="section-title">🔍 هل التشريع المعدل صحيح؟</p>', unsafe_allow_html=True)
