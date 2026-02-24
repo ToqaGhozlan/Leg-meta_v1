@@ -656,7 +656,7 @@ def main():
     st.set_page_config(page_title="منظومة مراجعة التشريعات", layout="wide", page_icon="⚖️")
 
     st.sidebar.markdown('<div class="sidebar-title">نوع التشريع</div>', unsafe_allow_html=True)
-    option = st.sidebar.radio("", ["نظام ج2", "نظام ج1"])
+    option = st.sidebar.radio("", ["نظام ج1", "نظام ج2"])
     st.session_state.option = option
 
     if st.sidebar.button("↻ إعادة تحميل البيانات"):
@@ -700,3 +700,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
