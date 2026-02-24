@@ -95,13 +95,218 @@ def apply_styles():
             max-width: 980px !important;
             direction: rtl;
         }
-        /* ... باقي الـ CSS كما هو في الكود الأصلي ... */
-        /* للاختصار، افترض أنك تحتفظ بكامل الـ styles السابقة هنا */
+        .app-header {
+            text-align: center; padding: 2.5rem 0 1.5rem;
+            border-bottom: 1px solid rgba(201,168,76,0.3); margin-bottom: 2rem;
+        }
+        .app-header .seal {
+            font-size: 3.5rem; line-height: 1; margin-bottom: 0.5rem;
+            filter: drop-shadow(0 0 12px rgba(201,168,76,0.5));
+        }
+        .app-header h1 {
+            font-family: 'Amiri', serif !important; font-size: 2.4rem !important;
+            font-weight: 700 !important; color: var(--gold) !important;
+            margin: 0 0 0.4rem !important; text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+        }
+        .app-header .subtitle {
+            color: rgba(248,244,237,0.55) !important; font-size: 0.95rem;
+            font-weight: 300; letter-spacing: 2px;
+        }
+        [data-testid="stAppViewContainer"] {
+            flex-direction: row-reverse !important;
+        }
+        [data-testid="stSidebar"] {
+            background: var(--navy-mid) !important;
+            border-left: 2px solid rgba(201,168,76,0.3) !important;
+            border-right: none !important;
+        }
+        [data-testid="stSidebarCollapsedControl"] {
+            right: 0 !important; left: auto !important;
+        }
+        [data-testid="stSidebar"] { color: var(--cream) !important; }
+        [data-testid="stSidebar"] * {
+            color: var(--cream) !important;
+            direction: rtl !important;
+            text-align: right !important;
+        }
+        .sidebar-title {
+            color: var(--gold) !important; font-family: 'Amiri', serif !important;
+            font-size: 1.25rem !important; font-weight: 700 !important;
+            border-bottom: 1px solid rgba(201,168,76,0.35);
+            padding-bottom: 0.7rem; margin-bottom: 1rem; text-align: right;
+        }
+        .sidebar-user {
+            color: var(--gold) !important; font-weight: 700; font-size: 1.1rem;
+            margin: 1rem 0; text-align: center;
+        }
+        .progress-wrap { margin: 1.5rem 0; }
+        .progress-meta {
+            display: flex; justify-content: space-between;
+            color: rgba(248,244,237,0.6); font-size: 0.82rem;
+            margin-bottom: 0.5rem; direction: rtl;
+        }
+        .progress-track {
+            background: rgba(255,255,255,0.08); height: 6px;
+            border-radius: 3px; overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold), var(--gold-light));
+            border-radius: 3px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+        }
+        .wizard-row {
+            display: flex; justify-content: center; align-items: flex-start; gap: 0;
+            margin: 1.5rem 0 2rem; direction: ltr;
+        }
+        .wizard-item {
+            display: flex; flex-direction: column; align-items: center;
+            position: relative; flex: 1;
+        }
+        .wizard-item:not(:last-child)::after {
+            content: ''; position: absolute; top: 22px; left: 50%;
+            width: 100%; height: 2px; background: rgba(255,255,255,0.1); z-index: 0;
+        }
+        .wizard-item.done::after { background: var(--gold); }
+        .wizard-dot {
+            width: 44px; height: 44px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; font-weight: 700; position: relative; z-index: 1;
+            border: 2px solid transparent;
+        }
+        .wizard-dot.done { background: var(--gold); color: var(--navy); border-color: var(--gold); }
+        .wizard-dot.active { background: transparent; color: var(--gold); border-color: var(--gold); box-shadow: 0 0 0 4px rgba(201,168,76,0.2); }
+        .wizard-dot.pending { background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.25); border-color: rgba(255,255,255,0.1); }
+        .wizard-label { font-size: 0.72rem; margin-top: 6px; font-weight: 500; }
+        .wizard-label.done { color: var(--gold); }
+        .wizard-label.active { color: var(--gold-light); }
+        .wizard-label.pending { color: rgba(255,255,255,0.2); }
+        .law-card {
+            background: rgba(255,255,255,0.04);
+            border: 1px solid rgba(201,168,76,0.2); border-radius: 14px;
+            padding: 2rem 2rem 1.6rem; margin: 1.2rem 0; direction: rtl;
+        }
+        .law-card:hover { border-color: rgba(201,168,76,0.45); }
+        .law-link-wrap {
+            margin-top: 0.9rem; padding-top: 0.7rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        a.law-link {
+            color: #e5c97a; font-size: 0.82rem; text-decoration: none; font-weight: 600;
+            transition: color 0.2s;
+        }
+        a.law-link:hover { color: #c9a84c; text-decoration: underline; }
+        .law-card .card-badge {
+            display: inline-block; background: var(--gold); color: var(--navy);
+            font-size: 0.72rem; font-weight: 800; padding: 3px 12px;
+            border-radius: 20px; margin-bottom: 0.9rem;
+        }
+        .law-card h3 {
+            font-family: 'Amiri', serif !important; font-size: 1.35rem !important;
+            color: var(--cream) !important; font-weight: 700 !important;
+            line-height: 1.55; margin: 0 0 1rem !important; text-align: right !important;
+        }
+        .law-card .meta-row {
+            display: flex; gap: 1.5rem; flex-wrap: wrap;
+            direction: rtl; justify-content: flex-start;
+            margin-top: 0.8rem; padding-top: 0.8rem;
+            border-top: 1px solid rgba(255,255,255,0.07);
+        }
+        .meta-item { display: flex; flex-direction: column; gap: 2px; }
+        .meta-label { font-size: 0.72rem; color: rgba(248,244,237,0.4); letter-spacing: 1px; }
+        .meta-value { font-size: 0.95rem; color: var(--gold-light); font-weight: 600; }
+        .amended-card {
+            background: rgba(201,168,76,0.06);
+            border: 1px solid rgba(201,168,76,0.3);
+            border-right: 4px solid var(--gold); border-radius: 10px;
+            padding: 1.5rem 1.8rem; margin: 1.2rem 0; direction: rtl;
+        }
+        .amended-card .ac-label {
+            font-size: 0.75rem; letter-spacing: 1.5px; color: var(--gold);
+            font-weight: 700; margin-bottom: 0.8rem; text-align: right !important;
+        }
+        .amended-card .ac-name {
+            color: var(--cream) !important; font-family: 'Amiri', serif !important;
+            font-size: 1.1rem !important; line-height: 1.75 !important;
+            margin: 0 0 1rem !important; text-align: right !important;
+            white-space: pre-wrap !important;
+            word-break: break-word !important;
+        }
+        .record-counter {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(201,168,76,0.12); border: 1px solid rgba(201,168,76,0.3);
+            border-radius: 30px; padding: 6px 18px;
+            color: var(--gold); font-size: 0.9rem; font-weight: 700;
+            margin-bottom: 1.2rem; direction: rtl;
+        }
+        .gold-divider {
+            height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+            margin: 2rem 0; opacity: 0.35;
+        }
+        .section-title {
+            color: var(--cream) !important; font-size: 1rem !important;
+            font-weight: 600 !important; margin: 1.5rem 0 0.8rem !important;
+            display: flex; align-items: center; gap: 8px; direction: rtl;
+        }
+        .stButton > button {
+            border-radius: 10px !important; font-weight: 700 !important;
+            font-size: 1rem !important; padding: 0.65rem 1.2rem !important;
+            transition: all 0.2s ease !important; border: none !important;
+        }
+        .stButton > button[kind="primary"] {
+            background: linear-gradient(135deg, var(--gold) 0%, #b8943d 100%) !important;
+            color: var(--navy) !important;
+            box-shadow: 0 4px 15px rgba(201,168,76,0.35) !important;
+        }
+        .stButton > button[kind="primary"]:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 6px 20px rgba(201,168,76,0.5) !important;
+        }
+        .stButton > button:not([kind="primary"]) {
+            background: rgba(255,255,255,0.07) !important;
+            color: var(--cream) !important;
+            border: 1px solid rgba(255,255,255,0.15) !important;
+        }
+        .stButton > button:not([kind="primary"]):hover {
+            background: rgba(255,255,255,0.12) !important;
+            border-color: rgba(201,168,76,0.4) !important;
+        }
+        .stTextInput input, .stTextArea textarea, .stNumberInput input {
+            background: rgba(15, 30, 61, 0.8) !important;
+            color: #f8f4ed !important;
+            border: 1px solid rgba(201,168,76,0.4) !important;
+            border-radius: 8px !important;
+            direction: rtl !important;
+            font-size: 1rem !important;
+            caret-color: var(--gold) !important;
+        }
+        .stTextInput input:focus, .stTextArea textarea:focus {
+            border-color: var(--gold) !important;
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15) !important;
+        }
+        .stTextInput label, .stTextArea label, .stNumberInput label {
+            color: rgba(248,244,237,0.8) !important;
+            font-size: 0.88rem !important; font-weight: 600 !important;
+            direction: rtl !important; text-align: right !important;
+        }
+        [data-testid="stForm"] {
+            background: rgba(26,47,90,0.5);
+            border: 1px solid rgba(201,168,76,0.2);
+            border-radius: 14px; padding: 1.5rem 1.8rem;
+        }
+        .finish-screen {
+            text-align: center; padding: 4rem 2rem; direction: rtl;
+        }
+        .finish-screen .trophy { font-size: 5rem; margin-bottom: 1rem; }
+        .finish-screen h2 {
+            font-family: 'Amiri', serif !important; font-size: 2rem !important;
+            color: var(--gold) !important; margin-bottom: 0.5rem !important;
+        }
+        .finish-screen p { color: rgba(248,244,237,0.65) !important; font-size: 1.1rem; }
+        #MainMenu, footer, header { visibility: hidden; }
         </style>
     """, unsafe_allow_html=True)
 
 apply_styles()
-
 st.sidebar.markdown(f'<div class="sidebar-user">👤 {user_name}</div>', unsafe_allow_html=True)
 if st.sidebar.button("تسجيل الخروج"):
     st.session_state.authenticated = False
@@ -328,14 +533,12 @@ def show_record(idx, data, total):
             <div class="progress-track"><div class="progress-fill" style="width:{pct:.1f}%"></div></div>
         </div>
     """, unsafe_allow_html=True)
-    
     link = row.get("الرابط", "").strip()
     link_html = (
         '<div class="law-link-wrap">'
         f'<a href="{link}" target="_blank" class="law-link">🔗 عرض النص الكامل</a>'
         '</div>'
     ) if link else ""
-    
     meta_html = (
         f'<div class="meta-item"><span class="meta-label">رقم القانون</span><span class="meta-value">{row.get("الرقم", "—")}</span></div>'
         f'<div class="meta-item"><span class="meta-label">السنة</span><span class="meta-value">{row.get("السنة", "—")}</span></div>'
@@ -343,7 +546,6 @@ def show_record(idx, data, total):
         f'<div class="meta-item"><span class="meta-label">الصفحة</span><span class="meta-value">{row.get("magazine_page", "—")}</span></div>'
         f'<div class="meta-item"><span class="meta-label">تاريخ الجريدة</span><span class="meta-value">{row.get("magazine_date", "—")}</span></div>'
     )
-    
     card_html = (
         '<div class="law-card">'
         '<div class="card-badge">نص القانون</div>'
@@ -353,7 +555,6 @@ def show_record(idx, data, total):
         '</div>'
     )
     st.markdown(card_html, unsafe_allow_html=True)
-    
     modified_leg_value = row.get('ModifiedLeg', '').strip()
     display_value = modified_leg_value if modified_leg_value else "⚠️ لا يوجد تشريع معدل لهذا القانون"
     st.markdown(f"""
@@ -362,10 +563,8 @@ def show_record(idx, data, total):
             <p class="ac-name">{display_value}</p>
         </div>
     """, unsafe_allow_html=True)
-    
     st.markdown('<div class="gold-divider"></div>', unsafe_allow_html=True)
     st.markdown('<p class="section-title">🔍 هل التشريع المعدل صحيح؟</p>', unsafe_allow_html=True)
-    
     col1, col2 = st.columns(2)
     with col1:
         if st.button("✅ نعم، صحيح", use_container_width=True, type="primary", key=f"yes_{idx}"):
@@ -428,7 +627,7 @@ def save_record(record_dict, status):
     
     st.session_state.local_saved.append(rec)
     
-    # الحفظ الفوري في الشيت (سجل واحد فقط)
+    # حفظ فوري للسجل الواحد في الشيت
     save_records([rec])
 
 # ────────────────────────────────────────────────
@@ -436,49 +635,37 @@ def save_record(record_dict, status):
 # ────────────────────────────────────────────────
 def main():
     st.set_page_config(page_title="منظومة مراجعة التشريعات", layout="wide", page_icon="⚖️")
-    
     st.sidebar.markdown('<div class="sidebar-title">نوع التشريع</div>', unsafe_allow_html=True)
     option = st.sidebar.radio("", ["نظام ج1", "نظام ج2"])
     st.session_state.option = option
-    
     if st.sidebar.button("↻ إعادة تحميل البيانات"):
         st.cache_data.clear()
         st.rerun()
-
     if "current_idx" not in st.session_state:
         st.session_state.current_idx, st.session_state.max_reached = load_progress()
         st.session_state.editing = False
         st.session_state.local_saved = load_saved_records()
-
     data = load_data(option)
     if not data:
         return
-
     total = len(data)
-
     if st.session_state.current_idx >= total:
         celebrate_finish(option)
         if st.button("↺ ابدأ مراجعة جديدة", type="primary"):
             st.session_state.current_idx = 0
             st.session_state.max_reached = 0
             save_progress(0, 0)
-            # اختياري: مسح السجلات القديمة أو الاحتفاظ بها
-            # st.session_state.local_saved = []
-            # save_records([])  
             st.rerun()
         return
-
     if st.session_state.editing:
         edit_form(st.session_state.current_idx, data[st.session_state.current_idx])
     else:
         show_record(st.session_state.current_idx, data, total)
-
     if st.sidebar.checkbox("عرض السجلات المحفوظة"):
         if st.session_state.local_saved:
             df = pd.DataFrame(st.session_state.local_saved)
-            cols = ["تاريخ", "الحالة", "اسم القانون", "ModifiedLeg"]
-            existing_cols = [c for c in cols if c in df.columns]
-            st.sidebar.dataframe(df[existing_cols], use_container_width=True)
+            cols = ["تاريخ", "الحالة", "اسم القانون"]
+            st.sidebar.dataframe(df[cols] if all(c in df.columns for c in cols) else df, use_container_width=True)
         else:
             st.sidebar.info("لا توجد سجلات بعد")
 
